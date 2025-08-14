@@ -1,0 +1,46 @@
+local part = script.Parent
+local sound = script.Grenade_explode_4
+
+local active = true -- активна ли мина
+local respawn = true -- будет ли мина появляться снова после взрыва через время
+local respawnTime = 5 -- через сколько снова появится мина
+
+local function explode()
+    if active == true then
+        active = false
+        local Explosion = Instance.new("Explosion") -- взрыв
+        Explosion.Parent = part
+        Explosion.Position = part.Position
+        Explosion.BlastPressure = 150 -- сила взрыва
+        Explosion.BlastRadius = 50 -- радиус взрыва
+
+        sound:Play() -- звук взрыва
+
+        if respawn == true then
+            for i, obj in pairs(part.Parent:GetChildren()) do -- делаем мину невидимой на время респавна
+                if obj.IsA("Part") or obj.IsA("MeshPart") then
+                    obj.Transparency = 1
+                    obj.CanCollide = false
+                end
+            end
+
+            task.wait(respawnTime)
+            active = true
+
+            for i, obj in pairs(part.Parent:GetChildren()) do -- возвращаем видимость мине
+                if obj.IsA("Part") or obj.IsA("MeshPart") then
+                    obj.Transparency = 0
+                    obj.CanCollide = true
+                end
+            end
+        else
+            part.Parent:Destroy() -- если не респавнить, тогда удалять при взрыве
+        end
+    end
+end
+
+script.Parent.Touched:Connect(function(hit)
+    if hit.Parent and hit.Parent:FindFirstChild("Humanoid") then
+        explode()
+    end
+end)
